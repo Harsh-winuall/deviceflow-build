@@ -500,16 +500,20 @@ const DialogPlans = ({
                             currentMainPlan?.billingCycles === "Monthly" &&
                             !isYearly
                           ) {
-                            handlePayment(group?.plans?.[0]?._id);
+                            // handlePayment(group?.plans?.[0]?._id);
                           } else {
-                            handlePayment(group?.plans?.[1]?._id);
+                            // handlePayment(group?.plans?.[1]?._id);
                           }
                           return;
                         }
 
+                        if (currentMainPlan?.planName !== group._id) {
+                        }
+
                         if (
-                          currentMainPlan?.billingCycles === "Monthly" &&
-                          isYearly
+                          currentMainPlan?.planName !== group._id ||
+                          (currentMainPlan?.billingCycles === "Monthly" &&
+                            isYearly)
                         ) {
                           if (data?.isUpgradeRequested) {
                             toast("Plan upgrade already requested");
@@ -522,8 +526,9 @@ const DialogPlans = ({
                         }
 
                         if (
-                          currentMainPlan?.billingCycles === "Annually" &&
-                          !isYearly
+                          currentMainPlan?.planName !== group._id ||
+                          (currentMainPlan?.billingCycles === "Annually" &&
+                            !isYearly)
                         ) {
                           if (data?.isUpgradeRequested) {
                             toast("Plan downgrade already requested");
@@ -536,11 +541,11 @@ const DialogPlans = ({
                         }
 
                         // Default → first-time subscription or no current plan
-                        handlePayment(
-                          isYearly
-                            ? group?.plans?.[1]?._id
-                            : group?.plans?.[0]?._id
-                        );
+                        // handlePayment(
+                        //   isYearly
+                        //     ? group?.plans?.[1]?._id
+                        //     : group?.plans?.[0]?._id
+                        // );
                       } else {
                         console.log(group._id, currentMainPlan);
                         if (
@@ -577,111 +582,6 @@ const DialogPlans = ({
                 </div>
               );
             })}
-
-            {/* <div className=" w-[350px] h-[500px] rounded-xl px-5 py-7">
-              <h2 className="text-black font-gilroyBold text-xl">Pro Plan</h2>
-
-              <p className="text-[#64748B] font-gilroyMedium text-[13px] mt-2">
-                Everything you need to manage assets with ease — ideal for
-                startups and growing teams.
-              </p>
-
-              <div className="mt-4 flex items-end gap-1">
-                <span className="text-[#191D23] text-5xl font-gilroySemiBold">
-                  $34
-                </span>
-                <p className="flex gap-1 text-[#4B5768] font-gilroyRegular mb-1 text-[13px]">
-                  <span>/</span>
-                  <span className="">Month</span>
-                </p>
-              </div>
-
-              <div className="mt-8">
-                <ul className="text-sm font-gilroyMedium gap-3 flex flex-col">
-                  {features?.map((feat, index) => (
-                    <li className="flex gap-2 items-center" key={index}>
-                      {index < 2 ? (
-                        <div className="flex justify-center items-center p-1.5 rounded-full bg-[#E8EDFB]">
-                          <HugeiconsIcon
-                            icon={Tick02Icon}
-                            size={12}
-                            color="#1d4ed8"
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex justify-center items-center p-1.5 rounded-full bg-[#F7F8F9]">
-                          <HugeiconsIcon
-                            icon={Cancel01Icon}
-                            size={12}
-                            color="#191D23"
-                          />
-                        </div>
-                      )}
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="w-full bg-white text-black border border-[#E6E6E6] font-gilroySemiBold text-sm justify-center items-center flex py-2.5 px-3.5 rounded-[4.35px] mt-8 cursor-pointer">
-                Current Plan
-              </div>
-            </div>
-
-            <div
-              className=" w-[350px] h-[500px] rounded-xl shadow-[#CCD9FF] shadow-xl relative bg-[#1D4ED8] px-5 py-7"
-              //   style={{
-              //     background:
-              //       "linear-gradient(to right, #173EAD 0%, #1D4ED8 20%, #1D4ED8 80%, #173EAD 100%)",
-              //   }}
-            >
-              <div className="flex w-[200px] absolute items-end -top-16 left-16">
-                <img src="/media/curly-arrow.svg" className=" w-20 h-14" />
-                <span className="text-[#1D4ED8] text-base font-gilroyMedium mb-2">
-                  Save 25%
-                </span>
-              </div>
-
-              <h2 className="text-white font-gilroyBold text-xl">
-                Enterprise Plan
-              </h2>
-
-              <p className="text-[#F7F8F9] font-gilroyMedium text-[13px] mt-2">
-                Advanced controls, integrations, and support — built for large
-                teams and complex workflows.
-              </p>
-
-              <div className="mt-4 flex items-end gap-1">
-                <span className="text-white text-5xl font-gilroySemiBold">
-                  $25
-                </span>
-                <p className="flex gap-1 text-[#F7F8F9] font-gilroyRegular mb-1 text-[13px]">
-                  <span>/</span>
-                  <span className="">Month</span>
-                </p>
-              </div>
-
-              <div className="mt-8">
-                <ul className="text-sm font-gilroyMedium gap-3 flex flex-col text-[#F7F8F9]">
-                  {features?.map((feat, index) => (
-                    <li className="flex gap-2 items-center" key={index}>
-                      <div className="flex justify-center items-center p-1.5 rounded-full bg-[#E8EDFB]">
-                        <HugeiconsIcon
-                          icon={Tick02Icon}
-                          size={12}
-                          color="#1d4ed8"
-                        />
-                      </div>
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="w-full bg-white text-black font-gilroySemiBold text-sm justify-center items-center flex py-2.5 px-3.5 rounded-[4.35px] mt-8 cursor-pointer">
-                Upgrade Plan
-              </div>
-            </div> */}
           </div>
         </div>
       </DialogContent>

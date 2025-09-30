@@ -1,0 +1,82 @@
+/* TipTap Editor Styles */
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror ul {
+  list-style-type: disc;
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.ProseMirror ul li {
+  margin: 0.25rem 0;
+  padding: 0;
+  display: list-item;
+}
+
+.ProseMirror ul li p {
+  margin: 0;
+  padding: 0;
+}
+
+.ProseMirror ul ul {
+  list-style-type: circle;
+  margin: 0.25rem 0;
+  padding-left: 1.5rem;
+}
+
+.ProseMirror ul ul ul {
+  list-style-type: square;
+}
+
+/* Ensure list items display correctly */
+.ProseMirror li {
+  display: list-item;
+}
+
+/* Fix for nested content in list items */
+.ProseMirror li > p:first-child {
+  margin-top: 0;
+}
+
+.ProseMirror li > p:last-child {
+  margin-bottom: 0;
+}
+
+.bullet-list {
+  margin: 0.5rem 0;
+}
+
+.list-item {
+  margin: 0.25rem 0;
+}
+
+.mention {
+  background-color: #e2e8f0;
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tippy.js custom theme */
+.tippy-box[data-theme~="custom"] {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.tippy-box[data-theme~="custom"] .tippy-arrow {
+  color: white;
+}

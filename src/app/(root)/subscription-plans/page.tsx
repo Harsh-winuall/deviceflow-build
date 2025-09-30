@@ -1,0 +1,558 @@
+"use client";
+import { CombinedContainer } from "@/components/container/container";
+import Spinner from "@/components/Spinner";
+import { Switch } from "@/components/ui/switch";
+import {
+  getAvailablePlans,
+  getSubcriptionStatus,
+  initiatePayment,
+  requestPlan,
+} from "@/server/settingActions";
+import { Cancel01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+const features = [
+  "20,000+ of PNG & SVG graphics",
+  "Access to 100 million stock images",
+  "Upload Enterprise icons and fonts",
+  "Unlimited Sharing",
+  "Upload graphics & video in up to 4k",
+  "Unlimited Projects",
+];
+
+const DeviceFlowPlans = () => {
+  const { data, status: subscriptionStatus } = useQuery({
+    queryKey: ["subscription-plan"],
+    queryFn: () => getSubcriptionStatus("All"),
+  });
+  const { data: plans, status } = useQuery({
+    queryKey: ["plans"],
+    queryFn: getAvailablePlans,
+  });
+
+  const currentMainPlan = data?.[0]?.plan;
+  console.log("Current Main Plan:", currentMainPlan);
+
+  const requestPlanMutation = useMutation({
+    mutationFn: (planId: string) => {
+      console.log(planId);
+      requestPlan(planId);
+    },
+    onSuccess: (data) => {
+      toast.success("Plan requested successfully");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.message || "Failed to request plan! Please try again later"
+      );
+    },
+  });
+
+  const [isYearly, setIsYearly] = useState(false);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // Load Razorpay script
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
+  if (status === "pending") {
+    return <p className="text-center">Loading plans...</p>;
+  }
+
+  if (status === "error" || !plans) {
+    return <p className="text-center text-red-500">Failed to load plans</p>;
+  }
+
+  const handlePayment = async (planId: string) => {
+    try {
+      // Call API to create invoice & order
+      const res = await initiatePayment({
+        paymentOption: "card",
+        planId,
+      });
+      console.log("Plan ID:", planId);
+
+      console.log("Initiated Payment :", res);
+
+      if (!res) {
+        toast.error("Failed to initiate payment");
+        return;
+      }
+
+      const options = {
+        key: "rzp_test_oismFrOGZBlrzI", // public key
+        amount: res.totalAmount, // in paise
+        currency: "INR",
+        name: "DeviceFlow",
+        description: "Subscription Payment",
+        order_id: res?.orderId, // Razorpay order id from backend
+        prefill: {
+          name: data?.[0]?.organisation?.name || "Customer Name",
+          email: data?.[0]?.organisation?.email || "test@example.com",
+          contact: data?.[0]?.organisation?.phone || "9999999999",
+        },
+        theme: {
+          color: "#004DFF",
+        },
+        handler: function (response: any) {
+          // This runs after successful payment
+          // Send response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature
+          // to backend for verification
+          queryClient.invalidateQueries({ queryKey: ["subscription-plan"] });
+          console.log("Payment success:", response);
+          toast.success("Payment Successful!");
+          //   setOpen && setOpen(false);
+        },
+        modal: {
+          ondismiss: function () {
+            toast.error("Payment Cancelled!");
+          },
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong!");
+    }
+  };
+
+  console.log(plans);
+  return (
+    <CombinedContainer title="Subscriptions" className="bg-white">
+      <div className=" w-full h-full flex flex-col items-center mx-auto mt-4">
+        <h1 className="text-[#191D23] font-gilroyBold text-3xl w-[50%] text-center">
+          Smart Plans for Smarter IT Management
+        </h1>
+
+        <div className="mt-5 mb-14 flex gap-5 items-center">
+          <span className="text-[#191D23] text-[13px] font-gilroyMedium ">
+            Pay Monthly
+          </span>
+
+          <div className="flex gap-5 items-center">
+            <div className="flex items-center space-x-2">
+              <Switch
+                color="black"
+                id="plan"
+                className="peer-checked:bg-black data-[state=checked]:bg-primary"
+                defaultChecked={false}
+                checked={isYearly}
+                onChange={() => setIsYearly(!isYearly)}
+              />
+            </div>
+            <span className="text-[#191D23] text-[13px] font-gilroyMedium ">
+              Pay Yearly
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-16">
+          {/* Plans left and right */}
+          {plans?.map((group: any, idx: number) => {
+            const currentPlan = group.plans.find(
+              (p: any) => p._id === data[0]?.planId
+            );
+            console.log(currentPlan);
+            return (
+              <div
+                key={group._id}
+                className={`w-[350px] h-[500px] rounded-xl px-5 py-7 relative ${
+                  group._id === "Enterprise Plan"
+                    ? "bg-[black] shadow-[#CCD9FF] shadow-xl text-white"
+                    : ""
+                }`}
+              >
+                {group._id === "Enterprise Plan" && (
+                  <div className="flex w-[200px] absolute items-end -top-16 left-16">
+                    <img src="/media/curly-arrow.svg" className="w-20 h-14" />
+                    <span className="text-black text-base font-gilroyMedium mb-2">
+                      Save 25%
+                    </span>
+                  </div>
+                )}
+
+                <h2
+                  className={`font-gilroyBold text-xl ${
+                    group._id === "Enterprise Plan"
+                      ? "text-white"
+                      : "text-black"
+                  }`}
+                >
+                  {group._id}
+                </h2>
+
+                <p
+                  className={`font-gilroyMedium text-[13px] mt-2 ${
+                    group._id === "Enterprise Plan"
+                      ? "text-[#F7F8F9]"
+                      : "text-[#64748B]"
+                  }`}
+                >
+                  {group._id === "Pro Plan"
+                    ? "Everything you need to manage assets with ease — ideal for startups and growing teams."
+                    : "Advanced controls, integrations, and support — built for large teams and complex workflows."}
+                </p>
+
+                {/* Show Monthly pricing by default */}
+                {isYearly && group.plans[1] ? (
+                  <div>
+                    {group._id !== "Enterprise Plan" ? (
+                      <div className="mt-4 flex items-end gap-1">
+                        <span
+                          className={`text-5xl font-gilroySemiBold ${
+                            group._id === "Enterprise Plan"
+                              ? "text-white"
+                              : "text-[#191D23]"
+                          }`}
+                        >
+                          ₹
+                          {Math.floor(
+                            (group?.plans[1].pricingPerSeat ?? 0) / 100
+                          )}
+                        </span>
+                        <p
+                          className={`flex gap-1 font-gilroyRegular mb-1 text-[13px] ${
+                            group._id === "Enterprise Plan"
+                              ? "text-[#F7F8F9]"
+                              : "text-[#4B5768]"
+                          }`}
+                        >
+                          <span>/</span>
+                          <span>Seat</span>
+                          <span>/</span>
+                          <span>{group.plans[1].billingCycles}</span>
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-4 flex items-end gap-1 text-5xl font-gilroySemiBold text-white">
+                        Let’s Talk
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    {group._id !== "Enterprise Plan" ? (
+                      <div className="mt-4 flex items-end gap-1">
+                        <span
+                          className={`text-5xl font-gilroySemiBold ${
+                            group._id === "Enterprise Plan"
+                              ? "text-white"
+                              : "text-[#191D23]"
+                          }`}
+                        >
+                          ₹
+                          {Math.floor(
+                            (group?.plans[0].pricingPerSeat ?? 0) / 100
+                          )}
+                        </span>
+                        <p
+                          className={`flex gap-1 font-gilroyRegular mb-1 text-[13px] ${
+                            group._id === "Enterprise Plan"
+                              ? "text-[#F7F8F9]"
+                              : "text-[#4B5768]"
+                          }`}
+                        >
+                          <span>/</span>
+                          <span>Seat</span>
+                          <span>/</span>
+                          <span>{group.plans[0].billingCycles}</span>
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-4 flex items-end gap-1 text-5xl font-gilroySemiBold text-white">
+                        Let’s Talk
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Features */}
+                <div className="mt-8">
+                  <ul
+                    className={`text-sm font-gilroyMedium gap-3 flex flex-col ${
+                      group._id === "Enterprise Plan" ? "text-[#F7F8F9]" : ""
+                    }`}
+                  >
+                    {features?.map((feat, index) => (
+                      <li className="flex gap-2 items-center" key={index}>
+                        {group._id === "Enterprise Plan" ? (
+                          <div className="flex justify-center items-center p-1.5 rounded-full bg-[#E8EDFB]">
+                            <HugeiconsIcon
+                              icon={Tick02Icon}
+                              size={12}
+                              color="#1d4ed8"
+                            />
+                          </div>
+                        ) : group._id === "Pro Plan" && index < 2 ? (
+                          <div className="flex justify-center items-center p-1.5 rounded-full bg-[#E8EDFB]">
+                            <HugeiconsIcon
+                              icon={Tick02Icon}
+                              size={12}
+                              color="#1d4ed8"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex justify-center items-center p-1.5 rounded-full bg-[#F7F8F9]">
+                            <HugeiconsIcon
+                              icon={Cancel01Icon}
+                              size={12}
+                              color="#191D23"
+                            />
+                          </div>
+                        )}
+                        <p
+                          className={`${
+                            group._id === "Pro Plan" &&
+                            index > 1 &&
+                            "text-[#A0ABBB]"
+                          }`}
+                        >
+                          {feat}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Action button */}
+                <div
+                  className={`w-full font-gilroySemiBold text-sm justify-center items-center flex py-2.5 px-3.5 rounded mt-8 cursor-pointer ${
+                    group._id === "Enterprise Plan"
+                      ? "bg-white text-black"
+                      : "bg-white text-black border border-[#E6E6E6]"
+                  }`}
+                  onClick={() => {
+                    // 1. Enterprise Plan → only request, no payment
+                    // if (group._id === "Enterprise Plan") {
+                    //   if (
+                    //     currentMainPlan &&
+                    //     ((currentMainPlan?.billingCycles === "Monthly" &&
+                    //       isYearly) ||
+                    //       (currentMainPlan?.billingCycles === "Annually" &&
+                    //         !isYearly))
+                    //   ) {
+                    //     // Request upgrade if switching between monthly/yearly
+                    //     requestPlanMutation.mutate(
+                    //       isYearly
+                    //         ? group?.plans?.[1]?._id
+                    //         : group?.plans?.[0]?._id
+                    //     );
+                    //     setOpen && setOpen(false);
+                    //   } else {
+                    //     toast("You are already on this plan");
+                    //   }
+                    //   return;
+                    // }
+
+                    // 2. Non-Enterprise plans (Pro Plan etc.) → handle payments
+                    if (group._id === "Pro Plan") {
+                      if (
+                        currentMainPlan?.planName === group._id &&
+                        ((currentMainPlan?.billingCycles === "Monthly" &&
+                          !isYearly) ||
+                          (currentMainPlan?.billingCycles === "Annually" &&
+                            isYearly))
+                      ) {
+                        toast("You are already on this plan");
+                        return;
+                      }
+
+                      if (
+                        currentMainPlan?.billingCycles === "Monthly" &&
+                        isYearly
+                      ) {
+                        console.log(group?.plans?.[1]?._id);
+                        handlePayment(group?.plans?.[1]?._id);
+                        return;
+                      }
+
+                      if (
+                        currentMainPlan?.billingCycles === "Annually" &&
+                        !isYearly
+                      ) {
+                        console.log(group?.plans?.[0]?._id);
+                        handlePayment(group?.plans?.[0]?._id);
+                        return;
+                      }
+
+                      // Default → first-time subscription or no current plan
+                      handlePayment(
+                        isYearly
+                          ? group?.plans?.[1]?._id
+                          : group?.plans?.[0]?._id
+                      );
+                    } else {
+                      console.log(group._id, currentMainPlan);
+                      if (
+                        currentMainPlan?.planName === group._id &&
+                        ((currentMainPlan?.billingCycles === "Monthly" &&
+                          !isYearly) ||
+                          (currentMainPlan?.billingCycles === "Annually" &&
+                            isYearly))
+                      ) {
+                        toast("You are already on this plan");
+                        return;
+                      } else if (
+                        currentMainPlan?.planName !== group._id ||
+                        (currentMainPlan?.billingCycles === "Monthly" &&
+                          isYearly) ||
+                        (currentMainPlan?.billingCycles === "Annually" &&
+                          !isYearly)
+                      ) {
+                        // Request upgrade if switching between monthly/yearly
+
+                        requestPlanMutation.mutate(
+                          isYearly
+                            ? group?.plans?.[1]?._id
+                            : group?.plans?.[0]?._id
+                        );
+                      }
+                      return;
+                    }
+                  }}
+                >
+                  {/* {group._id === "Enterprise Plan" ? (
+                      requestPlanMutation.isPending ? (
+                        <Spinner size="sm" />
+                      ) : (
+                        "Upgrade Plan"
+                      )
+                    ) : (
+                      "Current Plan"
+                    )} */}
+                  {currentPlan?.planName === group._id &&
+                  ((currentPlan?.billingCycles === "Monthly" && !isYearly) ||
+                    (currentPlan?.billingCycles === "Annually" && isYearly)) ? (
+                    "Current Plan"
+                  ) : requestPlanMutation.isPending ? (
+                    <Spinner size="sm" />
+                  ) : group._id === "Enterprise Plan" ? (
+                    "Upgrade Plan"
+                  ) : (
+                    "Change Plan"
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* <div className=" w-[350px] h-[500px] rounded-xl px-5 py-7">
+              <h2 className="text-black font-gilroyBold text-xl">Pro Plan</h2>
+
+              <p className="text-[#64748B] font-gilroyMedium text-[13px] mt-2">
+                Everything you need to manage assets with ease — ideal for
+                startups and growing teams.
+              </p>
+
+              <div className="mt-4 flex items-end gap-1">
+                <span className="text-[#191D23] text-5xl font-gilroySemiBold">
+                  $34
+                </span>
+                <p className="flex gap-1 text-[#4B5768] font-gilroyRegular mb-1 text-[13px]">
+                  <span>/</span>
+                  <span className="">Month</span>
+                </p>
+              </div>
+
+              <div className="mt-8">
+                <ul className="text-sm font-gilroyMedium gap-3 flex flex-col">
+                  {features?.map((feat, index) => (
+                    <li className="flex gap-2 items-center" key={index}>
+                      {index < 2 ? (
+                        <div className="flex justify-center items-center p-1.5 rounded-full bg-[#E8EDFB]">
+                          <HugeiconsIcon
+                            icon={Tick02Icon}
+                            size={12}
+                            color="#1d4ed8"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex justify-center items-center p-1.5 rounded-full bg-[#F7F8F9]">
+                          <HugeiconsIcon
+                            icon={Cancel01Icon}
+                            size={12}
+                            color="#191D23"
+                          />
+                        </div>
+                      )}
+                      {feat}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="w-full bg-white text-black border border-[#E6E6E6] font-gilroySemiBold text-sm justify-center items-center flex py-2.5 px-3.5 rounded-[4.35px] mt-8 cursor-pointer">
+                Current Plan
+              </div>
+            </div>
+
+            <div
+              className=" w-[350px] h-[500px] rounded-xl shadow-[#CCD9FF] shadow-xl relative bg-[#1D4ED8] px-5 py-7"
+              //   style={{
+              //     background:
+              //       "linear-gradient(to right, #173EAD 0%, #1D4ED8 20%, #1D4ED8 80%, #173EAD 100%)",
+              //   }}
+            >
+              <div className="flex w-[200px] absolute items-end -top-16 left-16">
+                <img src="/media/curly-arrow.svg" className=" w-20 h-14" />
+                <span className="text-[#1D4ED8] text-base font-gilroyMedium mb-2">
+                  Save 25%
+                </span>
+              </div>
+
+              <h2 className="text-white font-gilroyBold text-xl">
+                Enterprise Plan
+              </h2>
+
+              <p className="text-[#F7F8F9] font-gilroyMedium text-[13px] mt-2">
+                Advanced controls, integrations, and support — built for large
+                teams and complex workflows.
+              </p>
+
+              <div className="mt-4 flex items-end gap-1">
+                <span className="text-white text-5xl font-gilroySemiBold">
+                  $25
+                </span>
+                <p className="flex gap-1 text-[#F7F8F9] font-gilroyRegular mb-1 text-[13px]">
+                  <span>/</span>
+                  <span className="">Month</span>
+                </p>
+              </div>
+
+              <div className="mt-8">
+                <ul className="text-sm font-gilroyMedium gap-3 flex flex-col text-[#F7F8F9]">
+                  {features?.map((feat, index) => (
+                    <li className="flex gap-2 items-center" key={index}>
+                      <div className="flex justify-center items-center p-1.5 rounded-full bg-[#E8EDFB]">
+                        <HugeiconsIcon
+                          icon={Tick02Icon}
+                          size={12}
+                          color="#1d4ed8"
+                        />
+                      </div>
+                      {feat}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="w-full bg-white text-black font-gilroySemiBold text-sm justify-center items-center flex py-2.5 px-3.5 rounded-[4.35px] mt-8 cursor-pointer">
+                Upgrade Plan
+              </div>
+            </div> */}
+        </div>
+      </div>
+    </CombinedContainer>
+  );
+};
+
+export default DeviceFlowPlans;

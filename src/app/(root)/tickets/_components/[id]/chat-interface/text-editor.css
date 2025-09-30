@@ -1,0 +1,88 @@
+.mention {
+  /* color: #bg-[#52ABFF1A] cursor-default text-[#025CE5]; */
+  color: #025ce5;
+  font-weight: 500;
+  /* background-color: #52abff1a; */
+  border-radius: 0.3rem;
+  /* padding: 0.375rem 0.5rem; */
+  font-size: 0.875rem;
+}
+
+.ProseMirror {
+  /* min-height: 100px; */
+  margin-top: 1.5px;
+  margin-bottom: 2px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  outline: none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: theme("colors.muted.foreground");
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* .mention {
+  background-color: var(--purple-light);
+  border-radius: 0.4rem;
+  box-decoration-break: clone;
+  color: var(--purple);
+  padding: 0.1rem 0.3rem;
+} */
+
+.mention::after {
+  content: "\200B";
+}
+/* 
+[data-tippy-root] {
+  background: transparent !important;
+}
+
+.tippy-box {
+  background-color: transparent;
+}
+
+.tippy-arrow {
+  background-color: transparent;
+}
+
+.tippy-content {
+  background-color: transparent;
+} */
+
+[data-tippy-root] {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Tippy box - remove background, padding, borders, shadows */
+.tippy-box[data-theme~="custom"] {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Hide tippy arrow if you don't want it */
+.tippy-box[data-theme~="custom"] .tippy-arrow {
+  display: none !important;
+}
+
+/* Also reset tippy-content */
+.tippy-box[data-theme~="custom"] .tippy-content {
+  background-color: transparent !important;
+  padding: 0 !important;
+}

@@ -287,7 +287,11 @@ const SubscriptionSection = () => {
             <span>
               The subscription will be cancelled on{" "}
               <span className="text-black">
-                {new Date(data?.[0]?.nextDueDate).toLocaleDateString("en-US", {
+                {new Date(
+                  data?.[0]?.planStatus === "Trial"
+                    ? data?.[0]?.trialEndDate
+                    : data?.[0]?.nextDueDate
+                ).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -301,7 +305,11 @@ const SubscriptionSection = () => {
           <div className="text-[13px] font-gilroyMedium text-[#757575]">
             Your new plan will take effect from{" "}
             <span className="text-black">
-              {formatDate(data?.[0]?.nextDueDate ?? "")}
+              {formatDate(
+                data?.[0]?.planStatus === "Trial"
+                  ? data?.[0]?.trialEndDate
+                  : data?.[0]?.nextDueDate ?? ""
+              )}
             </span>
           </div>
         )}
@@ -510,7 +518,7 @@ const SubscriptionSection = () => {
               <span className={`font-gilroyMedium text-left  flex-1 `}>
                 ₹
                 {data?.[0]?.isUpgradeRequested
-                  ? data?.[0]?.plan?.planName === "Enterprise Plan"
+                  ? data?.[0]?.isUpgradeRequested?.customPrice
                     ? formatNumber(
                         (data?.[0]?.isUpgradeRequested?.customPrice ?? 0) / 100
                       )
@@ -557,7 +565,14 @@ const SubscriptionSection = () => {
                         day: "numeric",
                       }
                     )
-                  : "-"}
+                  : new Date(data?.[0]?.trialEndDate).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    ) || "-"}
               </span>
             </div>
 

@@ -47,7 +47,9 @@ const InvoicesComponent = ({ invoices }: { invoices: any }) => {
           {
             title: "Invoice No.",
             render: (record: any) => (
-              <div className="text-xs">{(record?.invoiceNo).substring(0,15)}</div>
+              <div className="text-xs">
+                {(record?.invoiceNo).substring(0, 15)}
+              </div>
             ),
           },
 
@@ -88,15 +90,22 @@ const InvoicesComponent = ({ invoices }: { invoices: any }) => {
             title: "",
             render: (record: any) => (
               <>
-                <Button
-                  variant="outlineTwo"
-                  size="xs"
-                  className=" font-gilroyMedium  text-[#6C6C6C] py-0"
-                  onClick={() => {}}
-                  //   disabled={isPending}
-                >
-                 <img src="/media/download-icon.svg" width={16} height={16} alt="download-icon"/>
-                </Button>
+                {record?.status === "Paid" && (
+                  <Button
+                    variant="outlineTwo"
+                    size="xs"
+                    className=" font-gilroyMedium  text-[#6C6C6C] py-0"
+                    onClick={() => {}}
+                    //   disabled={isPending}
+                  >
+                    <img
+                      src="/media/download-icon.svg"
+                      width={16}
+                      height={16}
+                      alt="download-icon"
+                    />
+                  </Button>
+                )}
               </>
             ),
           },

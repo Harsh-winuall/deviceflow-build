@@ -60,9 +60,14 @@ const DialogPlans = ({
     mutationFn: (planId?: string) => {
       renewSubscription(planId);
     },
-    onSuccess: () => {
+    onSuccess: (_, planId) => {
       queryClient.invalidateQueries({ queryKey: ["subscription-plan"] });
-      toast.success("Subscription Renewed!");
+      if (!planId) {
+        toast.success("Subscription Renewed!");
+      }
+      else{
+        toast.success("Plan change requested!");
+      }
       setOpen && setOpen(false);
     },
     onError: () => {
@@ -237,7 +242,7 @@ const DialogPlans = ({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent
         closeButton={true}
-        className="rounded-lg xl:max-w-[70vw] 2xl:max-w-[55vw] max-w-[80vw] lg:h-fit h-[77vh] max-h-[95vh] lg:py-10 xl:py-14  px-28 flex flex-col"
+        className="rounded-lg xl:max-w-[70vw] 2xl:max-w-[55vw] max-w-[80vw] lg:h-auto h-[77vh] max-h-[95vh] lg:py-10 xl:py-14  px-28 flex flex-col"
       >
         <div className=" w-full h-full flex flex-col items-center mx-auto">
           <h1 className="text-[#191D23] font-gilroyBold lg:text-2xl xl:text-3xl w-[50%] lg:w-[60%] text-center">

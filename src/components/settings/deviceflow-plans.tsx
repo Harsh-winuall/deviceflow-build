@@ -504,20 +504,11 @@ const DialogPlans = ({
                           ) {
                             toast("You are already on this plan"); //For Active Case
                             return;
-                          } else if (
-                            //For Expired or Cancelled Case
-                            currentMainPlan?.billingCycles === "Monthly" &&
-                            !isYearly
-                          ) {
-                            // handlePayment(group?.plans?.[0]?._id);
-                          } else {
-                            // handlePayment(group?.plans?.[1]?._id);
-                          }
+                          } 
                           return;
                         }
 
-                        if (currentMainPlan?.planName !== group._id) {
-                        }
+          
 
                         if (
                           currentMainPlan?.planName !== group._id ||

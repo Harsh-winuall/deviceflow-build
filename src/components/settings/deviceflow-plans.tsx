@@ -64,8 +64,7 @@ const DialogPlans = ({
       queryClient.invalidateQueries({ queryKey: ["subscription-plan"] });
       if (!planId) {
         toast.success("Subscription Renewed!");
-      }
-      else{
+      } else {
         toast.success("Plan change requested!");
       }
       setOpen && setOpen(false);
@@ -188,6 +187,11 @@ const DialogPlans = ({
             data?.expiredOn === null
           ) {
             return "Current Plan";
+          } else if (
+            data?.isCancelled !== undefined &&
+            data?.isCancelled === true
+          ) {
+            return "Renew Plan";
           }
         } else {
           return "Request a Call";
@@ -560,7 +564,14 @@ const DialogPlans = ({
                             (currentMainPlan?.billingCycles === "Annually" &&
                               isYearly))
                         ) {
-                          toast("You are already on this plan");
+                          if (
+                            data?.isCancelled !== undefined &&
+                            data?.isCancelled === true
+                          ) {
+                            renewPlanMutation.mutate();
+                          } else {
+                            toast("You are already on this plan");
+                          }
                           return;
                         } else if (
                           currentMainPlan?.planName !== group._id ||

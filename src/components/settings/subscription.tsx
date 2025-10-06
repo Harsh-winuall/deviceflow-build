@@ -256,8 +256,10 @@ const SubscriptionSection = () => {
             ? `Free until ${formatDate(
                 data?.[0]?.trialEndDate ?? ""
               )}. Renews at ₹${formatNumber(
-                (data?.[0]?.pricingPerMonthPerSeat ||
-                  data?.[0]?.pricingPerYearPerSeat) / 100 || 0
+                data?.[0]?.customPrice
+                  ? data?.[0]?.customPrice / 100 || 0
+                  : (data?.[0]?.pricingPerMonthPerSeat ||
+                      data?.[0]?.pricingPerYearPerSeat) / 100 || 0
               )}/seat`
             : data?.[0]?.plan?.planName === "Pro Plan"
             ? `₹${formatNumber(

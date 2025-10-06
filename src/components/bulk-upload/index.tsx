@@ -80,7 +80,9 @@ function BulkUpload({
           const response = await getSeatsValidity(data.length);
           console.log(response, "response from seat api");
           if (response.valid !== true) {
-            setSeatCount(response?.currentValidUsers + data.length - response?.maxSeats);
+            setSeatCount(
+              response?.currentValidUsers + data.length - response?.maxSeats
+            );
             setExtraSeatData(response);
             setExtraSeatDialogOpen(true);
             return;
@@ -175,6 +177,10 @@ function BulkUpload({
           refetchType: "all",
           type: "all",
         });
+      }
+
+      if (type === "user") {
+        queryClient.invalidateQueries({ queryKey: ["fetch-people"] });
       }
 
       router.refresh();
